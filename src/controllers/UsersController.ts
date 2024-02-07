@@ -1,7 +1,9 @@
 import { Request, Response } from "express";
 import { ZodError, z } from "zod";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import { hashPassword } from "../utils/hash-password";
-import User from "../models/User";
+import User, { IUser } from "../models/User";
 
 const userSchema = z
   .object({
@@ -15,26 +17,22 @@ const userSchema = z
     path: ["confirmPassword"],
   });
 
-type User = {
-  name: string;
-  email: string;
-  password: string;
-};
-
 export const create = async (req: Request, res: Response) => {
   try {
     const { name, email, password } = userSchema.parse(req.body);
 
-    const userExists = await User.findOne({ email: email });
+    const existingUser = await User.findOne({ email: email });
 
-    if (userExists) {
-      res.status(400).json({ message: "Já existe um usuário com este endereço de e-mail!" });
+    if (existingUser) {
+      res
+        .status(400)
+        .json({ message: "Já existe um usuário com este endereço de e-mail!" });
       return;
     }
 
     const passwordHash = await hashPassword(password);
 
-    const userData: User = {
+    const userData: IUser = {
       name,
       email,
       password: passwordHash,
@@ -60,4 +58,4 @@ export const create = async (req: Request, res: Response) => {
 
 export const update = (req: Request, res: Response) => {
   //
-}
+};
