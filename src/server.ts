@@ -3,6 +3,7 @@ import "dotenv/config";
 import { connectDB } from "./db/connetion";
 import userRoutes from "./routes/userRoutes";
 import authRoutes from "./routes/authRoutes";
+import taskRoutes from "./routes/taskRoutes";
 
 const port = 3333;
 const app = express();
@@ -16,6 +17,7 @@ app.get("/", (req: Request, res: Response) => {
 
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
+app.use("/tasks", taskRoutes);
 
 connectDB().then(() => {
   app.listen(port, () => {

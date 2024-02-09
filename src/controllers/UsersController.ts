@@ -54,5 +54,5 @@ export const create = async (req: Request, res: Response) => {
 };
 
 export const update = (req: Request, res: Response) => {
-  //
+  return res.status(200).json({ message: "Autenticado!" });
 };
