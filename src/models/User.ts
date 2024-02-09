@@ -13,6 +13,6 @@ const userSchema: Schema = new Schema<IUser>({
   password: { type: String, required: true },
 }, { timestamps: true });
 
-const User = model("User", userSchema);
+const User = model<IUser>("User", userSchema);
 
 export default User;

@@ -1,33 +1,30 @@
 import { Request, Response } from "express";
 import { ZodError, z } from "zod";
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import { hashPassword } from "../utils/hash-password";
 import User, { IUser } from "../models/User";
 
-const userSchema = z
-  .object({
-    name: z.string().min(2, "O nome precisa ter no mínimo 2 caracteres!"),
-    email: z.string({ required_error: "O email é obrigatório!" }).email("E-mail inválido!"),
-    password: z.string().min(6, "A senha precisa ter no mínimo 6 caracteres!"),
-    confirmPassword: z.string().min(6, "A confirmação de senha precisa ter no mínimo 6 caracteres!"),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "A senha não confere com a confirmação da senha!",
-    path: ["confirmPassword"],
-  });
-
 export const create = async (req: Request, res: Response) => {
+  const createUserBody = z
+    .object({
+      name: z.string().min(2, "O nome precisa ter no mínimo 2 caracteres!"),
+      email: z.string({ required_error: "O email é obrigatório!" }).email("E-mail inválido!"),
+      password: z.string().min(6, "A senha precisa ter no mínimo 6 caracteres!"),
+      confirmPassword: z.string().min(6, "A confirmação de senha precisa ter no mínimo 6 caracteres!"),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+      message: "A senha não confere com a confirmação da senha!",
+      path: ["confirmPassword"],
+    });
+
   try {
-    const { name, email, password } = userSchema.parse(req.body);
+    const { name, email, password } = createUserBody.parse(req.body);
 
     const existingUser = await User.findOne({ email: email });
 
     if (existingUser) {
-      res
+      return res
         .status(400)
         .json({ message: "Já existe um usuário com este endereço de e-mail!" });
-      return;
     }
 
     const passwordHash = await hashPassword(password);
@@ -39,11 +36,11 @@ export const create = async (req: Request, res: Response) => {
     };
 
     const userDoc = new User(userData);
-    await userDoc.save();
+    const newUser = await userDoc.save();
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "Usuário criado com sucesso!",
-      data: userData,
+      data: newUser,
     });
   } catch (error) {
     if (error instanceof ZodError) {
