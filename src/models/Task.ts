@@ -1,19 +1,19 @@
-import { model, Schema, Types } from "mongoose";
+import { model, ObjectId, Schema } from "mongoose";
 
 export interface ITask {
-  _id?: string;
+  _id: string;
   title: string;
   description?: string;
-  completedAt: Date;
-  owner: string | null;
+  completedAt?: Date;
+  owner: ObjectId;
 }
 
 const taskSchema: Schema = new Schema<ITask>(
   {
     title: { type: String, required: true },
     description: { type: String, required: false },
-    completedAt: { type: Date, required: true },
-    owner: { type: Types.ObjectId, ref: "User", required: true },
+    completedAt: { type: Date, required: false },
+    owner: { type: Schema.Types.ObjectId, ref: "User", required: true },
   },
   { timestamps: true }
 );

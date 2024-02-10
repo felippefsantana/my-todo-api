@@ -4,6 +4,11 @@ import { ZodError, z } from "zod";
 import bcrypt from "bcrypt";
 import User, { IUser } from "../models/User";
 
+interface IDataStoredInToken {
+  id: string;
+  email: string;
+}
+
 export const generateToken = (user: IUser) => {
   return jwt.sign(
     { id: user._id, email: user.email },
@@ -13,7 +18,7 @@ export const generateToken = (user: IUser) => {
 };
 
 export const verifyToken = (token: string) => {
-  return jwt.verify(token, String(process.env.SECRET));
+  return jwt.verify(token, String(process.env.SECRET)) as IDataStoredInToken;
 };
 
 export const login = async (req: Request, res: Response) => {

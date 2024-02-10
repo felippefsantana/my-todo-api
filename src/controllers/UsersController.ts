@@ -3,7 +3,9 @@ import { ZodError, z } from "zod";
 import { hashPassword } from "../utils/hash-password";
 import User, { IUser } from "../models/User";
 
-export const create = async (req: Request, res: Response) => {
+type UserData = Omit<IUser, "_id">;
+
+export const createUser = async (req: Request, res: Response) => {
   const createUserBody = z
     .object({
       name: z.string().min(2, "O nome precisa ter no mínimo 2 caracteres!"),
@@ -29,7 +31,7 @@ export const create = async (req: Request, res: Response) => {
 
     const passwordHash = await hashPassword(password);
 
-    const userData: IUser = {
+    const userData: UserData = {
       name,
       email,
       password: passwordHash,
@@ -44,15 +46,15 @@ export const create = async (req: Request, res: Response) => {
     });
   } catch (error) {
     if (error instanceof ZodError) {
-      res
+      return res
         .status(400)
         .json({ message: "Dados inválidos", errors: error.errors });
     } else {
-      res.status(500).json({ message: "Erro interno do servidor", error });
+      return res.status(500).json({ message: "Erro interno do servidor", error });
     }
   }
 };
 
-export const update = (req: Request, res: Response) => {
+export const updateUser = (req: Request, res: Response) => {
   return res.status(200).json({ message: "Autenticado!" });
 };

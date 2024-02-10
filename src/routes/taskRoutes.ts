@@ -4,6 +4,6 @@ import { auth } from "../middlewares/auth";
 
 const router = express.Router();
 
-router.post("/create", auth, TaskController.create);
+router.post("/create", auth, TaskController.createTask);
 
 export default router;
