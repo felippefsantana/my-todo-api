@@ -12,13 +12,13 @@ interface IDataStoredInToken {
 export const generateToken = (user: IUser) => {
   return jwt.sign(
     { id: user._id, email: user.email },
-    process.env.SECRET ?? "my-secret",
+    process.env.JWT_SECRET ?? "my-secret",
     { expiresIn: "24h" }
   );
 };
 
 export const verifyToken = (token: string) => {
-  return jwt.verify(token, String(process.env.SECRET)) as IDataStoredInToken;
+  return jwt.verify(token, String(process.env.JWT_SECRET)) as IDataStoredInToken;
 };
 
 export const login = async (req: Request, res: Response) => {

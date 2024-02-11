@@ -5,7 +5,7 @@ import { IRequestWithUser } from "../interfaces/IRequestWithUser";
 
 type TaskData = Omit<ITask, "_id">;
 
-export const createTask = (req: Request, res: Response) => {
+export const createTask = async (req: Request, res: Response) => {
   const createTaskBody = z.object({
     title: z.string(),
     description: z.string(),
@@ -13,7 +13,6 @@ export const createTask = (req: Request, res: Response) => {
 
   try {
     const { title, description } = createTaskBody.parse(req.body);
-    console.log(req);
 
     const taskData: TaskData = {
       title,
@@ -22,7 +21,7 @@ export const createTask = (req: Request, res: Response) => {
     };
 
     const taskDoc = new Task(taskData);
-    const newTask = taskDoc.save();
+    const newTask = await taskDoc.save();
 
     return res.status(201).json({
       message: "Tarefa criada com sucesso!",
