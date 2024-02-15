@@ -1,11 +1,13 @@
-import { model, ObjectId, Schema } from "mongoose";
+import { model, Schema } from "mongoose";
+import { ObjectId } from "mongodb";
 
 export interface ITask {
-  _id: string;
+  _id: ObjectId;
   title: string;
   description?: string;
   completedAt?: Date;
   owner: ObjectId;
+  subtasks?: ObjectId[];
 }
 
 const taskSchema: Schema = new Schema<ITask>(
@@ -14,6 +16,9 @@ const taskSchema: Schema = new Schema<ITask>(
     description: { type: String, required: false },
     completedAt: { type: Date, required: false },
     owner: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    subtasks: [
+      { type: Schema.Types.ObjectId, ref: "Subtask", required: false },
+    ],
   },
   { timestamps: true }
 );

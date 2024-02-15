@@ -1,19 +1,20 @@
-import { model, Schema, Types } from "mongoose";
+import { model, Schema } from "mongoose";
+import { ObjectId } from "mongodb";
 
 export interface ISubtask {
-  _id?: string;
+  _id: ObjectId;
   title: string;
   description?: string;
-  completedAt: Date;
-  task: string | null;
+  completedAt?: Date;
+  task: ObjectId;
 }
 
 const subtaskSchema: Schema = new Schema<ISubtask>(
   {
     title: { type: String, required: true },
     description: { type: String, required: false },
-    completedAt: { type: Date, required: true },
-    task: { type: Types.ObjectId, ref: "Task", required: true },
+    completedAt: { type: Date, required: false },
+    task: { type: Schema.Types.ObjectId, ref: "Task", required: true },
   },
   { timestamps: true }
 );

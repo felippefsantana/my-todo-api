@@ -1,4 +1,5 @@
-import { model, ObjectId, Schema } from "mongoose";
+import { model, Schema } from "mongoose";
+import { ObjectId } from "mongodb";
 
 export interface IUser {
   _id: ObjectId;

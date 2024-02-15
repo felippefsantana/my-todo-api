@@ -8,7 +8,7 @@ type TaskData = Omit<ITask, "_id">;
 export const createTask = async (req: Request, res: Response) => {
   const createTaskBody = z.object({
     title: z.string(),
-    description: z.string(),
+    description: z.string().optional(),
   });
 
   try {
@@ -17,7 +17,7 @@ export const createTask = async (req: Request, res: Response) => {
     const taskData: TaskData = {
       title,
       description,
-      owner: (req as IRequestWithUser).user._id
+      owner: (req as IRequestWithUser).user._id,
     };
 
     const taskDoc = new Task(taskData);
