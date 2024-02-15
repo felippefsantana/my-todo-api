@@ -19,7 +19,7 @@ app.get("/", (req: Request, res: Response) => {
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 app.use("/tasks", taskRoutes);
-app.use("/tasks/:taskId/subtasks", subtaskRoutes);
+app.use("/subtasks", subtaskRoutes);
 
 connectDB().then(() => {
   app.listen(port, () => {

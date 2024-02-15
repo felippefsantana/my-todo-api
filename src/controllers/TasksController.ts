@@ -33,7 +33,19 @@ export const createTask = async (req: Request, res: Response) => {
         .status(400)
         .json({ message: "Dados inválidos", errors: error.errors });
     } else {
-      return res.status(500).json({ message: "Erro interno do servidor", error });
+      return res
+        .status(500)
+        .json({ message: "Erro interno do servidor", error });
     }
+  }
+};
+
+export const getAllTasks = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as IRequestWithUser).user._id;
+    const tasks = await Task.find({ owner: userId }).populate("subtasks");
+    return res.json({ tasks });
+  } catch (error) {
+    return res.status(500).json({ message: "Erro interno do servidor", error });
   }
 };
