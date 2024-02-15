@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { verifyToken } from "../controllers/AuthController";
 import User from "../models/User";
+import { verifyToken } from "../controllers/AuthController";
 import { IRequestWithUser } from "../interfaces/IRequestWithUser";
 
 export const auth = async (req: Request, res: Response, next: NextFunction) => {

@@ -1,5 +1,5 @@
 import express from "express";
-import * as SubtaskController from "../controllers/SubtaskController";
+import * as SubtaskController from "../controllers/SubtasksController";
 import { auth } from "../middlewares/auth";
 
 const router = express.Router();
