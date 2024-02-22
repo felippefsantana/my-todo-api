@@ -49,3 +49,19 @@ export const getAllTasks = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "Erro interno do servidor", error });
   }
 };
+
+export const deleteTask = async (req: Request, res: Response) => {
+  try {
+    const { taskId } = req.params;
+    const task = await Task.findById(taskId);
+    
+    if (!task) {
+      return res.status(400).json({ message: "Tarefa inexistente!" });
+    }
+
+    await task.deleteOne();
+    return res.status(200).json({ message: "Tarefa excluída com sucesso!" });
+  } catch (error) {
+    return res.status(500).json({ message: "Erro interno do servidor", error });
+  }
+};

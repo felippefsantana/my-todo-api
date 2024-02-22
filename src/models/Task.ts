@@ -1,5 +1,6 @@
 import { model, Schema } from "mongoose";
 import { ObjectId } from "mongodb";
+import Subtask from "./Subtask";
 
 export interface ITask {
   _id: ObjectId;
@@ -21,6 +22,16 @@ const taskSchema: Schema = new Schema<ITask>(
     ],
   },
   { timestamps: true }
+);
+
+taskSchema.pre<ITask>(
+  "deleteOne",
+  { document: true, query: false },
+  async function (next) {
+    const taskId = this._id;
+    await Subtask.deleteMany({ task: taskId });
+    next();
+  }
 );
 
 const Task = model<ITask>("Task", taskSchema);
