@@ -13,12 +13,15 @@ export const generateToken = (user: IUser) => {
   return jwt.sign(
     { id: user._id, email: user.email },
     process.env.JWT_SECRET ?? "my-secret",
-    { expiresIn: "24h" }
+    { expiresIn: "30d" }
   );
 };
 
 export const verifyToken = (token: string) => {
-  return jwt.verify(token, String(process.env.JWT_SECRET)) as IDataStoredInToken;
+  return jwt.verify(
+    token,
+    String(process.env.JWT_SECRET)
+  ) as IDataStoredInToken;
 };
 
 export const login = async (req: Request, res: Response) => {
@@ -46,16 +49,20 @@ export const login = async (req: Request, res: Response) => {
 
     const token = generateToken(user);
 
-    return res.status(200).json({ message: "Autenticado com sucesso!", token });
+    res.cookie("token", token, {
+      httpOnly: true,
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+      secure: process.env.NODE_ENV === "production",
+    });
+
+    return res.status(200).json({ message: "Autenticado com sucesso!" });
   } catch (error) {
     if (error instanceof ZodError) {
       return res
         .status(400)
         .json({ message: "Dados inválidos", errors: error.errors });
-    } else {
-      return res
-        .status(500)
-        .json({ message: "Erro interno do servidor", error });
     }
+
+    return res.status(500).json({ message: "Erro interno do servidor", error });
   }
 };
