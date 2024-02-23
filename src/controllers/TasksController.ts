@@ -41,7 +41,7 @@ export const createTask = async (req: Request, res: Response) => {
 export const findAllTasks = async (req: Request, res: Response) => {
   try {
     const userId = (req as IRequestWithUser).user._id;
-    const tasks = await Task.find({ owner: userId }).populate("subtasks");
+    const tasks = await Task.find({ owner: userId });
     return res.json(tasks);
   } catch (error) {
     return res.status(500).json({ message: "Erro interno do servidor", error });

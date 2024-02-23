@@ -1,13 +1,13 @@
 import express from "express";
-import * as TaskController from "../controllers/TasksController";
+import * as TasksController from "../controllers/TasksController";
 import { auth } from "../middlewares/auth";
 
 const router = express.Router();
 
-router.get("/", auth, TaskController.findAllTasks);
-router.get("/:taskId", auth, TaskController.findTaskById);
-router.post("/create", auth, TaskController.createTask);
-router.patch("/update/:taskId", auth, TaskController.updateTask);
-router.delete("/delete/:taskId", auth, TaskController.deleteTask);
+router.get("/", auth, TasksController.findAllTasks);
+router.get("/:taskId", auth, TasksController.findTaskById);
+router.post("/create", auth, TasksController.createTask);
+router.patch("/update/:taskId", auth, TasksController.updateTask);
+router.delete("/delete/:taskId", auth, TasksController.deleteTask);
 
 export default router;
