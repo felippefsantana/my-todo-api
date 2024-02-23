@@ -1,5 +1,6 @@
 import express, { Request, Response } from "express";
 import cookieParser from "cookie-parser";
+import cors from "cors";
 import "dotenv/config";
 import { connectDB } from "./db/connetion";
 import userRoutes from "./routes/userRoutes";
@@ -13,6 +14,7 @@ const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cookieParser());
+app.use(cors());
 
 app.get("/", (req: Request, res: Response) => {
   res.json({ message: "Hello World!" });

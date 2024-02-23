@@ -45,10 +45,55 @@ export const createSubtask = async (req: Request, res: Response) => {
       return res
         .status(400)
         .json({ message: "Dados inválidos", errors: error.errors });
-    } else {
-      return res
-        .status(500)
-        .json({ message: "Erro interno do servidor", error });
     }
+
+    return res.status(500).json({ message: "Erro interno do servidor", error });
+  }
+};
+
+export const updateSubtask = async (req: Request, res: Response) => {
+  const updateSubtaskBody = z.object({
+    title: z.string().optional(),
+    description: z.string().optional(),
+  });
+
+  try {
+    const { title, description } = updateSubtaskBody.parse(req.body);
+    const { subtaskId } = req.params;
+
+    const subtask = await Subtask.findById(subtaskId);
+
+    if (!subtask) {
+      return res.status(400).json({ message: "Subtarefa inexistente!" });
+    }
+
+    await subtask.updateOne({ title, description });
+    return res
+      .status(200)
+      .json({ message: "Subtarefa atualizada com sucesso!" });
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return res
+        .status(400)
+        .json({ message: "Dados inválidos", errors: error.errors });
+    }
+
+    return res.status(500).json({ message: "Erro interno do servidor", error });
+  }
+};
+
+export const deleteSubtask = async (req: Request, res: Response) => {
+  try {
+    const { subtaskId } = req.params;
+    const subtask = await Subtask.findById(subtaskId);
+
+    if (!subtask) {
+      return res.status(400).json({ message: "Subtarefa inexistente!" });
+    }
+
+    await subtask.deleteOne();
+    return res.status(200).json({ message: "Subtarefa excluída com sucesso!" });
+  } catch (error) {
+    return res.status(500).json({ message: "Erro interno do servidor", error });
   }
 };
