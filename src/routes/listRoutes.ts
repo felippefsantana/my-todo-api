@@ -4,6 +4,8 @@ import { auth } from "../middlewares/auth";
 
 const router = express.Router();
 
+router.get("/", auth, ListsController.findAllLists);
+router.get("/:listId", auth, ListsController.findListById);
 router.post("/create", auth, ListsController.createList);
 
 export default router;

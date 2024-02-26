@@ -36,3 +36,26 @@ export const createList = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "Erro interno do servidor", error });
   }
 };
+
+export const findAllLists = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as IRequestWithUser).user._id;
+    const lists = await List.find({ owner: userId });
+    return res.json(lists);
+  } catch (error) {
+    return res.status(500).json({ message: "Erro interno do servidor", error });
+  }
+};
+
+export const findListById = async (req: Request, res: Response) => {
+  try {
+    const { listId } = req.params;
+    const userId = (req as IRequestWithUser).user._id;
+    const list = await List.findOne({ _id: listId, owner: userId }).populate(
+      "tasks"
+    );
+    return res.json(list);
+  } catch (error) {
+    return res.status(500).json({ message: "Erro interno do servidor", error });
+  }
+};
