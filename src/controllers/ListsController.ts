@@ -16,6 +16,7 @@ export const createList = async (req: Request, res: Response) => {
     const listData: ListData = {
       title,
       owner: (req as IRequestWithUser).user._id,
+      tasks: [],
     };
 
     const listDoc = new List(listData);

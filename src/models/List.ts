@@ -6,7 +6,7 @@ export interface IList {
   _id: ObjectId;
   title: string;
   owner: ObjectId;
-  tasks?: ObjectId[];
+  tasks: ObjectId[];
 }
 
 const listSchema: Schema = new Schema<IList>(

@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import { ZodError, z } from "zod";
+import { ObjectId } from "mongodb";
 import Task, { ITask } from "../models/Task";
+import List, { IList } from "../models/List";
 import { IRequestWithUser } from "../interfaces/IRequestWithUser";
 
 type TaskData = Omit<ITask, "_id">;
@@ -9,19 +11,33 @@ export const createTask = async (req: Request, res: Response) => {
   const createTaskBody = z.object({
     title: z.string(),
     description: z.string().optional(),
+    listId: z.string().optional(),
   });
 
   try {
-    const { title, description } = createTaskBody.parse(req.body);
+    const { title, description, listId } = createTaskBody.parse(req.body);
+    const list = await List.findById(listId);
+
+    if (listId && !list) {
+      return res.status(400).json({
+        message: "Não foi possível criar uma tarefa, pois a lista não existe.",
+      });
+    }
 
     const taskData: TaskData = {
       title,
       description,
+      list: new ObjectId(listId),
       owner: (req as IRequestWithUser).user._id,
     };
 
     const taskDoc = new Task(taskData);
     const newTask = await taskDoc.save();
+
+    if (list) {
+      list.tasks.push(newTask._id);
+      list.save();
+    }
 
     return res.status(201).json({
       message: "Tarefa criada com sucesso!",
@@ -52,7 +68,9 @@ export const findTaskById = async (req: Request, res: Response) => {
   try {
     const { taskId } = req.params;
     const userId = (req as IRequestWithUser).user._id;
-    const task = await Task.findOne({ _id: taskId, owner: userId }).populate("subtasks");
+    const task = await Task.findOne({ _id: taskId, owner: userId }).populate(
+      "subtasks"
+    );
     return res.json(task);
   } catch (error) {
     return res.status(500).json({ message: "Erro interno do servidor", error });
