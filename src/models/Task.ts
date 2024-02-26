@@ -8,6 +8,7 @@ export interface ITask {
   description?: string;
   completedAt?: Date;
   owner: ObjectId;
+  list?: ObjectId;
   subtasks?: ObjectId[];
 }
 
@@ -17,6 +18,7 @@ const taskSchema: Schema = new Schema<ITask>(
     description: { type: String, required: false },
     completedAt: { type: Date, required: false },
     owner: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    list: { type: Schema.Types.ObjectId, ref: "List", required: false },
     subtasks: [
       { type: Schema.Types.ObjectId, ref: "Subtask", required: false },
     ],

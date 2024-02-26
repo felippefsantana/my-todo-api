@@ -7,6 +7,7 @@ import userRoutes from "./routes/userRoutes";
 import authRoutes from "./routes/authRoutes";
 import taskRoutes from "./routes/taskRoutes";
 import subtaskRoutes from "./routes/subtaskRoutes";
+import listRoutes from "./routes/listRoutes";
 
 const port = 3333;
 const app = express();
@@ -24,6 +25,7 @@ app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 app.use("/tasks", taskRoutes);
 app.use("/subtasks", subtaskRoutes);
+app.use("/lists", listRoutes);
 
 connectDB().then(() => {
   app.listen(port, () => {
