@@ -9,7 +9,7 @@ export interface ITask {
   completedAt?: Date;
   owner: ObjectId;
   list?: ObjectId;
-  subtasks?: ObjectId[];
+  subtasks: ObjectId[];
 }
 
 const taskSchema: Schema = new Schema<ITask>(

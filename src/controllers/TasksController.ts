@@ -16,27 +16,33 @@ export const createTask = async (req: Request, res: Response) => {
 
   try {
     const { title, description, listId } = createTaskBody.parse(req.body);
-    const list = await List.findById(listId);
-
-    if (listId && !list) {
-      return res.status(400).json({
-        message: "Não foi possível criar uma tarefa, pois a lista não existe.",
-      });
-    }
 
     const taskData: TaskData = {
       title,
       description,
-      list: new ObjectId(listId),
+      subtasks: [],
       owner: (req as IRequestWithUser).user._id,
     };
+    
+    if (listId) {
+      const list = await List.findById(listId);
+
+      if (!list) {
+        return res.status(400).json({
+          message: "Não foi possível criar uma tarefa, pois a lista não existe.",
+        });
+      }
+
+      taskData.list = list._id;
+    }
 
     const taskDoc = new Task(taskData);
     const newTask = await taskDoc.save();
 
-    if (list) {
-      list.tasks.push(newTask._id);
-      list.save();
+    if (listId) {
+      const list = await List.findById(listId);
+      list?.tasks.push(newTask._id);
+      list?.save();
     }
 
     return res.status(201).json({

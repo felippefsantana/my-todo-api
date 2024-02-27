@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import { ZodError, z } from "zod";
 import Subtask, { ISubtask } from "../models/Subtask";
-import Task from "../models/Task";
+import Task, { ITask } from "../models/Task";
+import { Document } from "mongoose";
 
 type SubtaskData = Omit<ISubtask, "_id">;
 
@@ -92,6 +93,13 @@ export const deleteSubtask = async (req: Request, res: Response) => {
     }
 
     await subtask.deleteOne();
+
+    const taskId = subtask.task;
+    const task = await Task.findById(taskId);
+
+    task!.subtasks = task!.subtasks.filter(id => id.toString() !== subtaskId);
+    await task?.save();
+
     return res.status(200).json({ message: "Subtarefa excluída com sucesso!" });
   } catch (error) {
     return res.status(500).json({ message: "Erro interno do servidor", error });
