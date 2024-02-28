@@ -1,8 +1,7 @@
 import { Request, Response } from "express";
 import { ZodError, z } from "zod";
 import Subtask, { ISubtask } from "../models/Subtask";
-import Task, { ITask } from "../models/Task";
-import { Document } from "mongoose";
+import Task from "../models/Task";
 
 type SubtaskData = Omit<ISubtask, "_id">;
 

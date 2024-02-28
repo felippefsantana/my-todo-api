@@ -16,6 +16,7 @@ export const createTask = async (req: Request, res: Response) => {
 
   try {
     const { title, description, listId } = createTaskBody.parse(req.body);
+    let list = undefined;
 
     const taskData: TaskData = {
       title,
@@ -23,13 +24,14 @@ export const createTask = async (req: Request, res: Response) => {
       subtasks: [],
       owner: (req as IRequestWithUser).user._id,
     };
-    
+
     if (listId) {
-      const list = await List.findById(listId);
+      list = await List.findById(listId);
 
       if (!list) {
         return res.status(400).json({
-          message: "Não foi possível criar uma tarefa, pois a lista não existe.",
+          message:
+            "Não foi possível criar uma tarefa, pois a lista não existe.",
         });
       }
 
@@ -40,9 +42,8 @@ export const createTask = async (req: Request, res: Response) => {
     const newTask = await taskDoc.save();
 
     if (listId) {
-      const list = await List.findById(listId);
       list?.tasks.push(newTask._id);
-      list?.save();
+      await list?.save();
     }
 
     return res.status(201).json({
@@ -85,12 +86,13 @@ export const findTaskById = async (req: Request, res: Response) => {
 
 export const updateTask = async (req: Request, res: Response) => {
   const updateTaskBody = z.object({
-    title: z.string().optional(),
+    title: z.string(),
     description: z.string().optional(),
+    listId: z.string().optional(),
   });
 
   try {
-    const { title, description } = updateTaskBody.parse(req.body);
+    const { title, description, listId } = updateTaskBody.parse(req.body);
     const { taskId } = req.params;
 
     const task = await Task.findById(taskId);
@@ -99,7 +101,66 @@ export const updateTask = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Tarefa inexistente!" });
     }
 
-    await task.updateOne({ title, description });
+    // update list
+    if (listId && !task.list) {
+      const list = await List.findById(listId);
+
+      if (!list) {
+        return res.status(400).json({
+          message:
+            "Não foi possível atualizar a tarefa, pois a lista não existe.",
+        });
+      }
+
+      list.tasks.push(task._id);
+      await list.save();
+    }
+
+    // switch between lists
+    if (listId && task.list && listId !== task.list.toString()) {
+      const list = await List.findById(listId);
+
+      if (!list) {
+        return res.status(400).json({
+          message:
+            "Não foi possível atualizar a tarefa, pois a lista não existe.",
+        });
+      }
+
+      // remove task id from tasks array of the list
+      const currentList = await List.findById(task.list);
+      currentList!.tasks = currentList!.tasks.filter(
+        (id) => id.toString() !== task._id.toString()
+      );
+      await currentList!.save();
+
+      // set "tasks" array of the list
+      list.tasks.push(task._id);
+      await list.save();
+    }
+
+    // remove task from list
+    if (!listId && task.list) {
+      const list = await List.findById(task.list);
+
+      if (!list) {
+        return res.status(400).json({
+          message:
+            "Não foi possível atualizar a tarefa, pois a lista não existe.",
+        });
+      }
+
+      list.tasks = list.tasks.filter(
+        (id) => id.toString() !== task._id.toString()
+      );
+      await list.save();
+    }
+
+    task.title = title;
+    task.description = description;
+    task.list = listId ? new ObjectId(listId) : undefined;
+    await task.save();
+
     return res.status(200).json({ message: "Tarefa atualizada com sucesso!" });
   } catch (error) {
     if (error instanceof ZodError) {
