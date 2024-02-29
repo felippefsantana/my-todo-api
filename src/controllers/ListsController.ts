@@ -68,8 +68,9 @@ export const updateList = async (req: Request, res: Response) => {
   try {
     const { title } = updateBodyList.parse(req.body);
     const { listId } = req.params;
+    const userId = (req as IRequestWithUser).user._id;
 
-    const list = await List.findById(listId);
+    const list = await List.findOne({ _id: listId, owner: userId });
 
     if (!list) {
       return res.status(400).json({ message: "Lista inexistente!" });
@@ -93,7 +94,9 @@ export const updateList = async (req: Request, res: Response) => {
 export const deleteList = async (req: Request, res: Response) => {
   try {
     const { listId } = req.params;
-    const list = await List.findById(listId);
+    const userId = (req as IRequestWithUser).user._id;
+
+    const list = await List.findOne({ _id: listId, owner: userId });
 
     if (!list) {
       return res.status(400).json({ message: "Lista inexistente!" });

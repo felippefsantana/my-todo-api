@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { ZodError, z } from "zod";
 import Subtask, { ISubtask } from "../models/Subtask";
 import Task from "../models/Task";
+import { IRequestWithUser } from "../interfaces/IRequestWithUser";
 
 type SubtaskData = Omit<ISubtask, "_id">;
 
@@ -60,10 +61,16 @@ export const updateSubtask = async (req: Request, res: Response) => {
   try {
     const { title, description } = updateSubtaskBody.parse(req.body);
     const { subtaskId } = req.params;
-
+    const userId = (req as IRequestWithUser).user._id;
     const subtask = await Subtask.findById(subtaskId);
 
-    if (!subtask) {
+    if (subtask) {
+      const task = await Task.findById(subtask.task);
+
+      if (task!.owner.toString() !== userId.toString()) {
+        return res.status(400).json({ message: "Subtarefa inexistente!" });
+      }
+    } else {
       return res.status(400).json({ message: "Subtarefa inexistente!" });
     }
 
@@ -85,18 +92,24 @@ export const updateSubtask = async (req: Request, res: Response) => {
 export const deleteSubtask = async (req: Request, res: Response) => {
   try {
     const { subtaskId } = req.params;
+    const userId = (req as IRequestWithUser).user._id;
     const subtask = await Subtask.findById(subtaskId);
+    let task = undefined;
 
-    if (!subtask) {
+    if (subtask) {
+      const taskId = subtask.task;
+      task = await Task.findById(taskId);
+
+      if (task!.owner.toString() !== userId.toString()) {
+        return res.status(400).json({ message: "Subtarefa inexistente!" });
+      }
+    } else {
       return res.status(400).json({ message: "Subtarefa inexistente!" });
     }
 
     await subtask.deleteOne();
 
-    const taskId = subtask.task;
-    const task = await Task.findById(taskId);
-
-    task!.subtasks = task!.subtasks.filter(id => id.toString() !== subtaskId);
+    task!.subtasks = task!.subtasks.filter((id) => id.toString() !== subtaskId);
     await task!.save();
 
     return res.status(200).json({ message: "Subtarefa excluída com sucesso!" });

@@ -2,8 +2,7 @@ import { Request, Response } from "express";
 import { ZodError, z } from "zod";
 import { ObjectId } from "mongodb";
 import Task, { ITask } from "../models/Task";
-import List, { IList } from "../models/List";
-import Subtask from "../models/Subtask";
+import List from "../models/List";
 import { IRequestWithUser } from "../interfaces/IRequestWithUser";
 
 type TaskData = Omit<ITask, "_id">;
@@ -95,8 +94,9 @@ export const updateTask = async (req: Request, res: Response) => {
   try {
     const { title, description, listId } = updateTaskBody.parse(req.body);
     const { taskId } = req.params;
+    const userId = (req as IRequestWithUser).user._id;
 
-    const task = await Task.findById(taskId);
+    const task = await Task.findOne({ _id: taskId, owner: userId });
 
     if (!task) {
       return res.status(400).json({ message: "Tarefa inexistente!" });
@@ -177,7 +177,9 @@ export const updateTask = async (req: Request, res: Response) => {
 export const deleteTask = async (req: Request, res: Response) => {
   try {
     const { taskId } = req.params;
-    const task = await Task.findById(taskId);
+    const userId = (req as IRequestWithUser).user._id;
+
+    const task = await Task.findOne({ _id: taskId, owner: userId });
 
     if (!task) {
       return res.status(400).json({ message: "Tarefa inexistente!" });
