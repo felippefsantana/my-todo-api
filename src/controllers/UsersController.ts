@@ -56,6 +56,11 @@ export const createUser = async (req: Request, res: Response) => {
   }
 };
 
+export const findUser = async (req: Request, res: Response) => {
+  const user = (req as IRequestWithUser).user;
+  return res.status(200).json(user);
+};
+
 export const updateUser = async (req: Request, res: Response) => {
   const updateUserBody = z.object({
     name: z.string().min(2, "O nome precisa ter no mínimo 2 caracteres!"),
