@@ -5,6 +5,6 @@ import { auth } from "../middlewares/auth";
 const router = express.Router();
 
 router.post("/create", UsersController.createUser);
-router.patch("/update/:userId", auth, UsersController.updateUser);
+router.patch("/update", auth, UsersController.updateUser);
 
 export default router;

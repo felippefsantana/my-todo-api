@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { ZodError, z } from "zod";
 import { hashPassword } from "../utils/hash-password";
 import User, { IUser } from "../models/User";
+import { IRequestWithUser } from "../interfaces/IRequestWithUser";
 
 type UserData = Omit<IUser, "_id">;
 
@@ -49,12 +50,36 @@ export const createUser = async (req: Request, res: Response) => {
       return res
         .status(400)
         .json({ message: "Dados inválidos", errors: error.errors });
-    } else {
-      return res.status(500).json({ message: "Erro interno do servidor", error });
     }
+
+    return res.status(500).json({ message: "Erro interno do servidor", error });
   }
 };
 
-export const updateUser = (req: Request, res: Response) => {
-  return res.status(200).json({ message: "Autenticado!" });
+export const updateUser = async (req: Request, res: Response) => {
+  const updateUserBody = z.object({
+    name: z.string().min(2, "O nome precisa ter no mínimo 2 caracteres!"),
+    email: z.string({ required_error: "O email é obrigatório!" }).email("E-mail inválido!"),
+  });
+
+  try {
+    const { name, email } = updateUserBody.parse(req.body);
+    const userId = (req as IRequestWithUser).user._id;
+    const user = await User.findById(userId);
+
+    user!.name = name;
+    user!.email = email;
+
+    await user!.save();
+
+    return res.status(200).json({ message: "Usuário atualizado com sucesso!" });
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return res
+        .status(400)
+        .json({ message: "Dados inválidos", errors: error.errors });
+    }
+
+    return res.status(500).json({ message: "Erro interno do servidor", error });
+  }
 };
