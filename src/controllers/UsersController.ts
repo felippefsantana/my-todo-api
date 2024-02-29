@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { ZodError, z } from "zod";
+import bcrypt from "bcrypt";
 import { hashPassword } from "../utils/hash-password";
 import User, { IUser } from "../models/User";
 import { IRequestWithUser } from "../interfaces/IRequestWithUser";
@@ -78,6 +79,36 @@ export const updateUser = async (req: Request, res: Response) => {
     await user!.save();
 
     return res.status(200).json({ message: "Usuário atualizado com sucesso!" });
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return res
+        .status(400)
+        .json({ message: "Dados inválidos", errors: error.errors });
+    }
+
+    return res.status(500).json({ message: "Erro interno do servidor", error });
+  }
+};
+
+export const deleteUser = async (req: Request, res: Response) => {
+  const deleteUserBody = z.object({
+    password: z.string({ required_error: "Confirme sua senha para excluir sua conta." }),
+  });
+
+  try {
+    const { password } = deleteUserBody.parse(req.body);
+    const userId = (req as IRequestWithUser).user._id;
+    const user = await User.findById(userId);
+
+    const passwordMatch = await bcrypt.compare(password, user!.password);
+
+    if (!passwordMatch) {
+      return res.status(422).json({ message: "Senha inválida!" });
+    }
+
+    await user!.deleteOne();
+
+    return res.status(200).json({ message: "Usuário excluído com sucesso!" });
   } catch (error) {
     if (error instanceof ZodError) {
       return res

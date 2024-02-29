@@ -42,6 +42,13 @@ taskSchema.pre("deleteMany", async function (next) {
   await Subtask.deleteMany({
     task: { $in: tasksFromList },
   });
+
+  const userId = this.getQuery().owner;
+  const tasksFromUser = await Task.find({ owner: userId });
+  await Subtask.deleteMany({
+    task: { $in: tasksFromUser },
+  });
+
   next();
 });
 

@@ -28,6 +28,15 @@ listSchema.pre<IList>(
   }
 );
 
+listSchema.pre("deleteMany", async function (next) {
+  const userId = this.getQuery().owner;
+  const listsFromUser = await List.find({ owner: userId });
+  await Task.deleteMany({
+    list: { $in: listsFromUser },
+  });
+  next();
+});
+
 const List = model<IList>("List", listSchema);
 
 export default List;
