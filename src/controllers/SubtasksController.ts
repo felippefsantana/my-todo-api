@@ -97,7 +97,7 @@ export const deleteSubtask = async (req: Request, res: Response) => {
     const task = await Task.findById(taskId);
 
     task!.subtasks = task!.subtasks.filter(id => id.toString() !== subtaskId);
-    await task?.save();
+    await task!.save();
 
     return res.status(200).json({ message: "Subtarefa excluída com sucesso!" });
   } catch (error) {

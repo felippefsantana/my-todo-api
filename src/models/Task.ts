@@ -36,6 +36,15 @@ taskSchema.pre<ITask>(
   }
 );
 
+taskSchema.pre("deleteMany", async function (next) {
+  const listId = this.getQuery().list;
+  const tasksFromList = await Task.find({ list: listId });
+  await Subtask.deleteMany({
+    task: { $in: tasksFromList },
+  });
+  next();
+});
+
 const Task = model<ITask>("Task", taskSchema);
 
 export default Task;

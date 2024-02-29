@@ -3,6 +3,7 @@ import { ZodError, z } from "zod";
 import { ObjectId } from "mongodb";
 import Task, { ITask } from "../models/Task";
 import List, { IList } from "../models/List";
+import Subtask from "../models/Subtask";
 import { IRequestWithUser } from "../interfaces/IRequestWithUser";
 
 type TaskData = Omit<ITask, "_id">;
@@ -180,6 +181,16 @@ export const deleteTask = async (req: Request, res: Response) => {
 
     if (!task) {
       return res.status(400).json({ message: "Tarefa inexistente!" });
+    }
+
+    // update tasks array from the list
+    if (task.list) {
+      const list = await List.findById(task.list);
+
+      list!.tasks = list!.tasks.filter(
+        (id) => id.toString() !== task._id.toString()
+      );
+      await list!.save();
     }
 
     await task.deleteOne();

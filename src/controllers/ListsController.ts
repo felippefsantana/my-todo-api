@@ -59,3 +59,19 @@ export const findListById = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "Erro interno do servidor", error });
   }
 };
+
+export const deleteList = async (req: Request, res: Response) => {
+  try {
+    const { listId } = req.params;
+    const list = await List.findById(listId);
+
+    if (!list) {
+      return res.status(400).json({ message: "Lista inexistente!" });
+    }
+
+    await list.deleteOne();
+    return res.status(200).json({ message: "Lista excluída com sucesso!" });
+  } catch (error) {
+    return res.status(500).json({ message: "Erro interno do servidor", error });
+  }
+};
