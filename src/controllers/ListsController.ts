@@ -60,6 +60,36 @@ export const findListById = async (req: Request, res: Response) => {
   }
 };
 
+export const updateList = async (req: Request, res: Response) => {
+  const updateBodyList = z.object({
+    title: z.string().min(1, "Informe o nome da lista."),
+  });
+
+  try {
+    const { title } = updateBodyList.parse(req.body);
+    const { listId } = req.params;
+
+    const list = await List.findById(listId);
+
+    if (!list) {
+      return res.status(400).json({ message: "Lista inexistente!" });
+    }
+
+    list.title = title;
+    await list.save();
+
+    return res.status(200).json({ message: "Lista atualizada com sucesso!" });
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return res
+        .status(400)
+        .json({ message: "Dados inválidos", errors: error.errors });
+    }
+
+    return res.status(500).json({ message: "Erro interno do servidor", error });
+  }
+};
+
 export const deleteList = async (req: Request, res: Response) => {
   try {
     const { listId } = req.params;
