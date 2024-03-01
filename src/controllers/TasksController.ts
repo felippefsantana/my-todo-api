@@ -21,6 +21,7 @@ export const createTask = async (req: Request, res: Response) => {
     const taskData: TaskData = {
       title,
       description,
+      isCompleted: false,
       subtasks: [],
       owner: (req as IRequestWithUser).user._id,
     };
@@ -88,14 +89,14 @@ export const updateTask = async (req: Request, res: Response) => {
   const updateTaskBody = z.object({
     title: z.string(),
     description: z.string().optional(),
+    isCompleted: z.boolean().optional(),
     listId: z.string().optional(),
   });
 
   try {
-    const { title, description, listId } = updateTaskBody.parse(req.body);
+    const { title, description, listId, isCompleted } = updateTaskBody.parse(req.body);
     const { taskId } = req.params;
     const userId = (req as IRequestWithUser).user._id;
-
     const task = await Task.findOne({ _id: taskId, owner: userId });
 
     if (!task) {
@@ -160,6 +161,38 @@ export const updateTask = async (req: Request, res: Response) => {
     task.title = title;
     task.description = description;
     task.list = listId ? new ObjectId(listId) : undefined;
+    task.completedAt = isCompleted ? new Date() : undefined;
+    await task.save();
+
+    return res.status(200).json({ message: "Tarefa atualizada com sucesso!" });
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return res
+        .status(400)
+        .json({ message: "Dados inválidos", errors: error.errors });
+    }
+
+    return res.status(500).json({ message: "Erro interno do servidor", error });
+  }
+};
+
+export const completeTask = async (req: Request, res: Response) => {
+  const updateStatusBody = z.object({
+    isCompleted: z.boolean(),
+  });
+
+  try {
+    const { isCompleted } = updateStatusBody.parse(req.body);
+    const { taskId } = req.params;
+    const userId = (req as IRequestWithUser).user._id;
+    const task = await Task.findOne({ _id: taskId, owner: userId });
+
+    if (!task) {
+      return res.status(400).json({ message: "Tarefa inexistente!" });
+    }
+
+    task.isCompleted = isCompleted;
+    task.completedAt = isCompleted ? new Date() : undefined;
     await task.save();
 
     return res.status(200).json({ message: "Tarefa atualizada com sucesso!" });

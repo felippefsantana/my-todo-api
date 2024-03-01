@@ -6,6 +6,7 @@ export interface ITask {
   _id: ObjectId;
   title: string;
   description?: string;
+  isCompleted: boolean;
   completedAt?: Date;
   owner: ObjectId;
   list?: ObjectId;
@@ -16,6 +17,7 @@ const taskSchema: Schema = new Schema<ITask>(
   {
     title: { type: String, required: true },
     description: { type: String, required: false },
+    isCompleted: { type: Boolean, required: true, default: false },
     completedAt: { type: Date, required: false },
     owner: { type: Schema.Types.ObjectId, ref: "User", required: true },
     list: { type: Schema.Types.ObjectId, ref: "List", required: false },
