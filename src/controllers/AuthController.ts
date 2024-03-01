@@ -37,14 +37,14 @@ export const login = async (req: Request, res: Response) => {
 
     if (!user) {
       return res
-        .status(422)
+        .status(401)
         .json({ message: "Nenhum usuário cadastrado com este e-mail!" });
     }
 
     const passwordMatch = await bcrypt.compare(password, user.password);
 
     if (!passwordMatch) {
-      return res.status(422).json({ message: "Senha inválida!" });
+      return res.status(401).json({ message: "Senha inválida!" });
     }
 
     const token = generateToken(user);

@@ -10,13 +10,13 @@ type UserData = Omit<IUser, "_id">;
 export const createUser = async (req: Request, res: Response) => {
   const createUserBody = z
     .object({
-      name: z.string().min(2, "O nome precisa ter no mínimo 2 caracteres!"),
+      name: z.string().min(2, "O nome deve ter no mínimo 2 caracteres!"),
       email: z.string({ required_error: "O email é obrigatório!" }).email("E-mail inválido!"),
-      password: z.string().min(6, "A senha precisa ter no mínimo 6 caracteres!"),
-      confirmPassword: z.string().min(6, "A confirmação de senha precisa ter no mínimo 6 caracteres!"),
+      password: z.string().min(6, "A senha deve ter no mínimo 6 caracteres!"),
+      confirmPassword: z.string().min(6, "A confirmação de senha deve ter no mínimo 6 caracteres!"),
     })
     .refine((data) => data.password === data.confirmPassword, {
-      message: "A senha não confere com a confirmação da senha!",
+      message: "A confirmação da senha deve ser igual a senha!",
       path: ["confirmPassword"],
     });
 
@@ -90,6 +90,49 @@ export const updateUser = async (req: Request, res: Response) => {
   }
 };
 
+export const updatePassword = async (req: Request, res: Response) => {
+  const updatePasswordBody = z
+    .object({
+      password: z.string(),
+      newPassword: z.string().min(6, "A nova senha deve ter no mínimo 6 caracteres!"),
+      confirmNewPassword: z.string().min(6, "A confirmação da senha deve ter no mínimo 6 caracteres!"),
+    })
+    .refine((data) => data.newPassword === data.confirmNewPassword, {
+      message: "A confirmação da senha deve ser igual a nova senha!",
+      path: ["confirmNewPassword"],
+    })
+    .refine((data) => data.password !== data.newPassword && data.password !== data.confirmNewPassword, {
+      message: "A nova senha não pode ser igual a senha anterior!",
+      path: ["password"],
+    });
+
+  try {
+    const { password, newPassword } = updatePasswordBody.parse(req.body);
+    const userId = (req as IRequestWithUser).user._id;
+    const user = await User.findById(userId);
+    const passwordMatch = await bcrypt.compare(password, user!.password);
+
+    if (!passwordMatch) {
+      return res.status(401).json({ message: "Senha inválida!" });
+    }
+
+    const newPasswordHash = await hashPassword(newPassword);
+
+    user!.password = newPasswordHash;
+    await user!.save();
+
+    return res.status(200).json({ message: "Senha atualizada com sucesso!" });
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return res
+        .status(400)
+        .json({ message: "Dados inválidos", errors: error.errors });
+    }
+
+    return res.status(500).json({ message: "Erro interno do servidor", error });
+  }
+};
+
 export const deleteUser = async (req: Request, res: Response) => {
   const deleteUserBody = z.object({
     password: z.string({ required_error: "Confirme sua senha para excluir sua conta." }),
@@ -99,11 +142,10 @@ export const deleteUser = async (req: Request, res: Response) => {
     const { password } = deleteUserBody.parse(req.body);
     const userId = (req as IRequestWithUser).user._id;
     const user = await User.findById(userId);
-
     const passwordMatch = await bcrypt.compare(password, user!.password);
 
     if (!passwordMatch) {
-      return res.status(422).json({ message: "Senha inválida!" });
+      return res.status(401).json({ message: "Senha inválida!" });
     }
 
     await user!.deleteOne();
