@@ -21,7 +21,6 @@ export const createUser = async (req: Request, res: Response) => {
 
   try {
     const { name, email, password } = createUserBody.parse(req.body);
-
     const existingUser = await User.findOne({ email: email });
 
     if (existingUser) {
