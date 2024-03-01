@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { ZodError, z } from "zod";
 import List, { IList } from "../models/List";
-import { IRequestWithUser } from "../interfaces/IRequestWithUser";
 
 type ListData = Omit<IList, "_id">;
 
@@ -15,7 +14,7 @@ export const createList = async (req: Request, res: Response) => {
 
     const listData: ListData = {
       title,
-      owner: (req as IRequestWithUser).user._id,
+      owner: req.user._id,
       tasks: [],
     };
 
@@ -39,7 +38,7 @@ export const createList = async (req: Request, res: Response) => {
 
 export const findAllLists = async (req: Request, res: Response) => {
   try {
-    const userId = (req as IRequestWithUser).user._id;
+    const userId = req.user._id;
     const lists = await List.find({ owner: userId });
     return res.json(lists);
   } catch (error) {
@@ -50,7 +49,7 @@ export const findAllLists = async (req: Request, res: Response) => {
 export const findListById = async (req: Request, res: Response) => {
   try {
     const { listId } = req.params;
-    const userId = (req as IRequestWithUser).user._id;
+    const userId = req.user._id;
     const list = await List.findOne({ _id: listId, owner: userId }).populate(
       "tasks"
     );
@@ -68,7 +67,7 @@ export const updateList = async (req: Request, res: Response) => {
   try {
     const { title } = updateBodyList.parse(req.body);
     const { listId } = req.params;
-    const userId = (req as IRequestWithUser).user._id;
+    const userId = req.user._id;
 
     const list = await List.findOne({ _id: listId, owner: userId });
 
@@ -94,7 +93,7 @@ export const updateList = async (req: Request, res: Response) => {
 export const deleteList = async (req: Request, res: Response) => {
   try {
     const { listId } = req.params;
-    const userId = (req as IRequestWithUser).user._id;
+    const userId = req.user._id;
 
     const list = await List.findOne({ _id: listId, owner: userId });
 

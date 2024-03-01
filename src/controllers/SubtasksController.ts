@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import { ZodError, z } from "zod";
 import Subtask, { ISubtask } from "../models/Subtask";
 import Task from "../models/Task";
-import { IRequestWithUser } from "../interfaces/IRequestWithUser";
 
 type SubtaskData = Omit<ISubtask, "_id">;
 
@@ -63,7 +62,7 @@ export const updateSubtask = async (req: Request, res: Response) => {
   try {
     const { title, description, isCompleted } = updateSubtaskBody.parse(req.body);
     const { subtaskId } = req.params;
-    const userId = (req as IRequestWithUser).user._id;
+    const userId = req.user._id;
     const subtask = await Subtask.findById(subtaskId);
 
     if (subtask) {
@@ -104,7 +103,7 @@ export const completeSubtask = async (req: Request, res: Response) => {
   try {
     const { isCompleted } = updateStatusBody.parse(req.body);
     const { subtaskId } = req.params;
-    const userId = (req as IRequestWithUser).user._id;
+    const userId = req.user._id;
     const subtask = await Subtask.findById(subtaskId);
 
     if (subtask) {
@@ -136,7 +135,7 @@ export const completeSubtask = async (req: Request, res: Response) => {
 export const deleteSubtask = async (req: Request, res: Response) => {
   try {
     const { subtaskId } = req.params;
-    const userId = (req as IRequestWithUser).user._id;
+    const userId = req.user._id;
     const subtask = await Subtask.findById(subtaskId);
     let task = undefined;
 

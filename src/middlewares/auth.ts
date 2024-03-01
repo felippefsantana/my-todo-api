@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import User from "../models/User";
 import { verifyToken } from "../controllers/AuthController";
-import { IRequestWithUser } from "../interfaces/IRequestWithUser";
 
 export const auth = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -18,7 +17,7 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
       throw new Error();
     }
 
-    (req as IRequestWithUser).user = user;
+    req.user = user;
     next();
   } catch (error) {
     return res.status(401).json({ message: "Token inválido!" });

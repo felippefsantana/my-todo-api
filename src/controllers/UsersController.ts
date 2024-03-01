@@ -3,7 +3,6 @@ import { ZodError, z } from "zod";
 import bcrypt from "bcrypt";
 import { hashPassword } from "../utils/hash-password";
 import User, { IUser } from "../models/User";
-import { IRequestWithUser } from "../interfaces/IRequestWithUser";
 
 type UserData = Omit<IUser, "_id">;
 
@@ -58,7 +57,7 @@ export const createUser = async (req: Request, res: Response) => {
 };
 
 export const findUser = async (req: Request, res: Response) => {
-  const user = (req as IRequestWithUser).user;
+  const user = req.user;
   return res.status(200).json(user);
 };
 
@@ -70,7 +69,7 @@ export const updateUser = async (req: Request, res: Response) => {
 
   try {
     const { name, email } = updateUserBody.parse(req.body);
-    const userId = (req as IRequestWithUser).user._id;
+    const userId = req.user._id;
     const user = await User.findById(userId);
 
     user!.name = name;
@@ -108,7 +107,7 @@ export const updatePassword = async (req: Request, res: Response) => {
 
   try {
     const { password, newPassword } = updatePasswordBody.parse(req.body);
-    const userId = (req as IRequestWithUser).user._id;
+    const userId = req.user._id;
     const user = await User.findById(userId);
     const passwordMatch = await bcrypt.compare(password, user!.password);
 
@@ -140,7 +139,7 @@ export const deleteUser = async (req: Request, res: Response) => {
 
   try {
     const { password } = deleteUserBody.parse(req.body);
-    const userId = (req as IRequestWithUser).user._id;
+    const userId = req.user._id;
     const user = await User.findById(userId);
     const passwordMatch = await bcrypt.compare(password, user!.password);
 

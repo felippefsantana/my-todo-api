@@ -3,7 +3,6 @@ import { ZodError, z } from "zod";
 import { ObjectId } from "mongodb";
 import Task, { ITask } from "../models/Task";
 import List from "../models/List";
-import { IRequestWithUser } from "../interfaces/IRequestWithUser";
 
 type TaskData = Omit<ITask, "_id">;
 
@@ -23,7 +22,7 @@ export const createTask = async (req: Request, res: Response) => {
       description,
       isCompleted: false,
       subtasks: [],
-      owner: (req as IRequestWithUser).user._id,
+      owner: req.user._id,
     };
 
     if (listId) {
@@ -64,7 +63,7 @@ export const createTask = async (req: Request, res: Response) => {
 
 export const findAllTasks = async (req: Request, res: Response) => {
   try {
-    const userId = (req as IRequestWithUser).user._id;
+    const userId = req.user._id;
     const tasks = await Task.find({ owner: userId });
     return res.json(tasks);
   } catch (error) {
@@ -75,7 +74,7 @@ export const findAllTasks = async (req: Request, res: Response) => {
 export const findTaskById = async (req: Request, res: Response) => {
   try {
     const { taskId } = req.params;
-    const userId = (req as IRequestWithUser).user._id;
+    const userId = req.user._id;
     const task = await Task.findOne({ _id: taskId, owner: userId }).populate(
       "subtasks"
     );
@@ -96,7 +95,7 @@ export const updateTask = async (req: Request, res: Response) => {
   try {
     const { title, description, listId, isCompleted } = updateTaskBody.parse(req.body);
     const { taskId } = req.params;
-    const userId = (req as IRequestWithUser).user._id;
+    const userId = req.user._id;
     const task = await Task.findOne({ _id: taskId, owner: userId });
 
     if (!task) {
@@ -185,7 +184,7 @@ export const completeTask = async (req: Request, res: Response) => {
   try {
     const { isCompleted } = updateStatusBody.parse(req.body);
     const { taskId } = req.params;
-    const userId = (req as IRequestWithUser).user._id;
+    const userId = req.user._id;
     const task = await Task.findOne({ _id: taskId, owner: userId });
 
     if (!task) {
@@ -211,7 +210,7 @@ export const completeTask = async (req: Request, res: Response) => {
 export const deleteTask = async (req: Request, res: Response) => {
   try {
     const { taskId } = req.params;
-    const userId = (req as IRequestWithUser).user._id;
+    const userId = req.user._id;
 
     const task = await Task.findOne({ _id: taskId, owner: userId });
 
