@@ -161,6 +161,7 @@ export const updateTask = async (req: Request, res: Response) => {
     task.title = title;
     task.description = description;
     task.list = listId ? new ObjectId(listId) : undefined;
+    task.isCompleted = !!isCompleted;
     task.completedAt = isCompleted ? new Date() : undefined;
     await task.save();
 
