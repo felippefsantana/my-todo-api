@@ -13,7 +13,7 @@ export const generateToken = (user: IUser) => {
   return jwt.sign(
     { id: user._id, email: user.email },
     process.env.JWT_SECRET ?? "my-secret",
-    { expiresIn: "30d" }
+    { expiresIn: process.env.JWT_EXPIRES_IN ?? "30 days" }
   );
 };
 
