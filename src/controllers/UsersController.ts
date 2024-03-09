@@ -2,9 +2,8 @@ import { Request, Response } from "express";
 import { ZodError, z } from "zod";
 import bcrypt from "bcrypt";
 import { hashPassword } from "../utils/hash-password";
-import User, { IUser } from "../models/User";
-
-type UserData = Omit<IUser, "_id">;
+import User from "../models/User";
+import * as UserService from "../services/UserService";
 
 export const createUser = async (req: Request, res: Response) => {
   const createUserBody = z
@@ -21,24 +20,12 @@ export const createUser = async (req: Request, res: Response) => {
 
   try {
     const { name, email, password } = createUserBody.parse(req.body);
-    const existingUser = await User.findOne({ email: email });
-
-    if (existingUser) {
-      return res
-        .status(400)
-        .json({ message: "Já existe um usuário com este endereço de e-mail!" });
-    }
-
-    const passwordHash = await hashPassword(password);
-
-    const userData: UserData = {
+    const data = {
       name,
       email,
-      password: passwordHash,
+      password
     };
-
-    const userDoc = new User(userData);
-    const newUser = await userDoc.save();
+    const newUser = await UserService.createUser(data);
 
     return res.status(201).json({
       message: "Usuário criado com sucesso!",
@@ -48,7 +35,16 @@ export const createUser = async (req: Request, res: Response) => {
     if (error instanceof ZodError) {
       return res
         .status(400)
-        .json({ message: "Dados inválidos", errors: error.errors });
+        .json({
+          error: {
+            code: 400,
+            message: "Dados inválidos",
+            details: error.errors.map((error) => ({
+              field: error.path[0],
+              message: error.message,
+            })),
+          },
+        });
     }
 
     return res.status(500).json({ message: "Erro interno do servidor", error });
@@ -69,12 +65,9 @@ export const updateUser = async (req: Request, res: Response) => {
   try {
     const { name, email } = updateUserBody.parse(req.body);
     const userId = req.user._id;
-    const user = await User.findById(userId);
+    const data = { name, email };
 
-    user!.name = name;
-    user!.email = email;
-
-    await user!.save();
+    await UserService.updateUser(userId, data);
 
     return res.status(200).json({ message: "Usuário atualizado com sucesso!" });
   } catch (error) {
@@ -107,17 +100,8 @@ export const updatePassword = async (req: Request, res: Response) => {
   try {
     const { password, newPassword } = updatePasswordBody.parse(req.body);
     const userId = req.user._id;
-    const user = await User.findById(userId);
-    const passwordMatch = await bcrypt.compare(password, user!.password);
-
-    if (!passwordMatch) {
-      return res.status(401).json({ message: "Senha inválida!" });
-    }
-
-    const newPasswordHash = await hashPassword(newPassword);
-
-    user!.password = newPasswordHash;
-    await user!.save();
+    
+    await UserService.updatePassword(userId, { password, newPassword });
 
     return res.status(200).json({ message: "Senha atualizada com sucesso!" });
   } catch (error) {
@@ -139,14 +123,8 @@ export const deleteUser = async (req: Request, res: Response) => {
   try {
     const { password } = deleteUserBody.parse(req.body);
     const userId = req.user._id;
-    const user = await User.findById(userId);
-    const passwordMatch = await bcrypt.compare(password, user!.password);
-
-    if (!passwordMatch) {
-      return res.status(401).json({ message: "Senha inválida!" });
-    }
-
-    await user!.deleteOne();
+    
+    await UserService.deleteUser(userId, { password });
 
     return res.status(200).json({ message: "Usuário excluído com sucesso!" });
   } catch (error) {
