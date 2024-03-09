@@ -1,8 +1,5 @@
 import { Request, Response } from "express";
 import { ZodError, z } from "zod";
-import bcrypt from "bcrypt";
-import { hashPassword } from "../utils/hash-password";
-import User from "../models/User";
 import * as UserService from "../services/UserService";
 
 export const createUser = async (req: Request, res: Response) => {
