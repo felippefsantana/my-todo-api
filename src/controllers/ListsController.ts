@@ -1,8 +1,7 @@
 import { Request, Response } from "express";
 import { ZodError, z } from "zod";
-import List, { IList } from "../models/List";
-
-type ListData = Omit<IList, "_id">;
+import * as ListService from "../services/ListService";
+import { ObjectId } from "mongodb";
 
 export const createList = async (req: Request, res: Response) => {
   const createListBody = z.object({
@@ -11,15 +10,12 @@ export const createList = async (req: Request, res: Response) => {
 
   try {
     const { title } = createListBody.parse(req.body);
-
-    const listData: ListData = {
+    const data = {
       title,
       owner: req.user._id,
-      tasks: [],
     };
 
-    const listDoc = new List(listData);
-    const newList = await listDoc.save();
+    const newList = await ListService.createList(data);
 
     return res.status(201).json({
       message: "Lista criada com sucesso!",
@@ -39,7 +35,7 @@ export const createList = async (req: Request, res: Response) => {
 export const findAllLists = async (req: Request, res: Response) => {
   try {
     const userId = req.user._id;
-    const lists = await List.find({ owner: userId });
+    const lists = await ListService.findAllLists(userId);
     return res.json(lists);
   } catch (error) {
     return res.status(500).json({ message: "Erro interno do servidor", error });
@@ -50,9 +46,7 @@ export const findListById = async (req: Request, res: Response) => {
   try {
     const { listId } = req.params;
     const userId = req.user._id;
-    const list = await List.findOne({ _id: listId, owner: userId }).populate(
-      "tasks"
-    );
+    const list = await ListService.findListById(new ObjectId(listId), userId);
     return res.json(list);
   } catch (error) {
     return res.status(500).json({ message: "Erro interno do servidor", error });
@@ -68,15 +62,12 @@ export const updateList = async (req: Request, res: Response) => {
     const { title } = updateBodyList.parse(req.body);
     const { listId } = req.params;
     const userId = req.user._id;
+    const data = {
+      title,
+      owner: userId
+    };
 
-    const list = await List.findOne({ _id: listId, owner: userId });
-
-    if (!list) {
-      return res.status(400).json({ message: "Lista inexistente!" });
-    }
-
-    list.title = title;
-    await list.save();
+    await ListService.updateList(new ObjectId(listId), data);
 
     return res.status(200).json({ message: "Lista atualizada com sucesso!" });
   } catch (error) {
@@ -95,13 +86,8 @@ export const deleteList = async (req: Request, res: Response) => {
     const { listId } = req.params;
     const userId = req.user._id;
 
-    const list = await List.findOne({ _id: listId, owner: userId });
+    await ListService.deleteList(new ObjectId(listId), userId);
 
-    if (!list) {
-      return res.status(400).json({ message: "Lista inexistente!" });
-    }
-
-    await list.deleteOne();
     return res.status(200).json({ message: "Lista excluída com sucesso!" });
   } catch (error) {
     return res.status(500).json({ message: "Erro interno do servidor", error });
